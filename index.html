@@ -1,1 +1,199 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Biodiversité · DDT 95</title><link rel="stylesheet" href="style.css"></head><body><header><img src="https://ddt95.github.io/atlas-territorial-95/prefet-val-doise-logo.png" alt="Préfet du Val-d’Oise"><div><small>DIRECTION DÉPARTEMENTALE DES TERRITOIRES</small><strong>Observatoire de la biodiversité</strong></div><a href="https://ddt95.github.io/atlas-territorial-95/">← Atlas</a></header><main><p class="eyebrow">LECTURE 08 · PRÉFIGURATION</p><h1>Voir les milieux.<br><span>Comprendre les continuités.</span></h1><p class="lead">Une future carte des espaces remarquables, protections, continuités écologiques et observations d’espèces du Val-d’Oise.</p><section><h2>Ce que l’observatoire donnera à lire</h2><div class="grid"><article><b>01</b><h3>Espaces remarquables</h3><p>ZNIEFF, Natura 2000 et autres périmètres documentés.</p></article><article><b>02</b><h3>Continuités</h3><p>Réservoirs, corridors et obstacles aux déplacements des espèces.</p></article><article><b>03</b><h3>Observations</h3><p>Données d’espèces agrégées avec dates, sources et précautions d’usage.</p></article></div></section></main><footer>DDT du Val-d’Oise · Page de préfiguration</footer></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Observatoire de la biodiversité · DDT du Val-d'Oise</title>
+<meta name="description" content="Carte interactive des espaces naturels protégés, des continuités écologiques et des observations d'espèces du Val-d'Oise.">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#carte">Aller directement à la carte</a>
+<a class="skip-link" href="#panneau">Aller directement au panneau de commande</a>
+
+<header>
+  <img src="https://ddt95.github.io/atlas-territorial-95/prefet-val-doise-logo.png" alt="Préfet du Val-d’Oise — Liberté Égalité Fraternité">
+  <div class="titre-bloc">
+    <small>DIRECTION DÉPARTEMENTALE DES TERRITOIRES DU VAL-D’OISE</small>
+    <strong>Observatoire de la biodiversité</strong>
+  </div>
+  <nav class="header-actions" aria-label="Liens principaux">
+    <a href="https://ddt95.github.io/atlas-territorial-95/">← Atlas territorial</a>
+    <a href="#sources">Sources des données</a>
+    <button type="button" id="btn-apropos" aria-haspopup="dialog">À propos</button>
+  </nav>
+</header>
+
+<div class="status-bar" id="status-bar" role="status" aria-live="polite">
+  <span class="status-item" data-source="communes"><i class="dot" aria-hidden="true"></i>Communes (geo.api.gouv.fr)</span>
+  <span class="status-item" data-source="protections"><i class="dot" aria-hidden="true"></i>Espaces protégés (IGN Géoportail)</span>
+  <span class="status-item" data-source="continuites"><i class="dot" aria-hidden="true"></i>Continuités écologiques (IGN Géoportail)</span>
+  <span class="status-item" data-source="observations"><i class="dot" aria-hidden="true"></i>Observations d’espèces (GBIF)</span>
+</div>
+
+<div class="app">
+  <aside class="panel" id="panneau" aria-label="Panneau de commande">
+    <button type="button" id="btn-panneau-toggle" class="panneau-toggle" aria-expanded="true" aria-controls="panneau-corps">
+      <span class="panneau-toggle-poignee" aria-hidden="true"></span>
+      <span class="panneau-toggle-texte">Réduire le panneau</span>
+    </button>
+    <div id="panneau-corps">
+    <p class="eyebrow">LECTURE 08 · BIODIVERSITÉ</p>
+    <h1>Milieux naturels et espèces du Val-d’Oise</h1>
+    <p class="promesse">Repérez en un coup d’œil les espaces protégés, les continuités écologiques et les espèces observées près d’un lieu du département.</p>
+
+    <div class="benefices">
+      <p class="benefices-titre">Cette carte vous aide à :</p>
+      <ul>
+        <li>Savoir si un terrain est concerné par une ZNIEFF ou un site Natura 2000</li>
+        <li>Situer un projet par rapport aux corridors et réservoirs de biodiversité</li>
+        <li>Consulter les espèces déjà observées autour d’un point</li>
+      </ul>
+    </div>
+
+    <ol class="parcours">
+      <li><span class="num">1</span> Recherchez ou choisissez une commune</li>
+      <li><span class="num">2</span> Activez les couches utiles</li>
+      <li><span class="num">3</span> Cliquez sur la carte pour lire la fiche</li>
+    </ol>
+
+    <div class="bloc-recherche">
+      <label for="recherche-commune">Rechercher une commune</label>
+      <div class="recherche-champ">
+        <input type="text" id="recherche-commune" placeholder="Ex. Auvers-sur-Oise" autocomplete="off" aria-describedby="recherche-aide" aria-expanded="false" role="combobox" aria-autocomplete="list" aria-controls="recherche-suggestions">
+        <button type="button" id="btn-rechercher">Rechercher</button>
+      </div>
+      <ul id="recherche-suggestions" class="suggestions" role="listbox" hidden></ul>
+      <p id="recherche-aide" class="aide">Saisissez le nom d’une commune du Val-d’Oise.</p>
+    </div>
+
+    <div class="territoire-actif">
+      <span class="chip" id="chip-territoire">Territoire : Val-d’Oise</span>
+      <button type="button" id="btn-nouvelle-recherche" hidden>Nouvelle recherche</button>
+    </div>
+
+    <div class="bloc-couches">
+      <div class="couches-entete">
+        <h2>Couches de lecture</h2>
+        <button type="button" id="btn-tout-masquer">Tout masquer</button>
+      </div>
+
+      <fieldset class="groupe-couches">
+        <legend>Quels espaces sont protégés ?</legend>
+        <div class="couche" data-layer="znieff1">
+          <label><input type="checkbox" data-layer-toggle="znieff1"><span class="swatch" style="background:#2c7a4b"></span>ZNIEFF de type 1</label>
+          <button type="button" class="info-btn" aria-label="Informations sur la couche ZNIEFF de type 1">i</button>
+          <p class="couche-desc">Secteurs de superficie limitée, à forte valeur biologique. <span class="meta">Source : INPN/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+        </div>
+        <div class="couche" data-layer="znieff2">
+          <label><input type="checkbox" data-layer-toggle="znieff2"><span class="swatch" style="background:#6aab7c"></span>ZNIEFF de type 2</label>
+          <button type="button" class="info-btn" aria-label="Informations sur la couche ZNIEFF de type 2">i</button>
+          <p class="couche-desc">Grands ensembles naturels riches, peu modifiés. <span class="meta">Source : INPN/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+        </div>
+        <div class="couche" data-layer="n2000-habitats">
+          <label><input type="checkbox" data-layer-toggle="n2000-habitats"><span class="swatch" style="background:#b06a2c"></span>Natura 2000 — Habitats</label>
+          <button type="button" class="info-btn" aria-label="Informations sur la couche Natura 2000 Habitats">i</button>
+          <p class="couche-desc">Sites d’intérêt communautaire (directive « Habitats »). <span class="meta">Source : DREAL/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+        </div>
+        <div class="couche" data-layer="n2000-oiseaux">
+          <label><input type="checkbox" data-layer-toggle="n2000-oiseaux"><span class="swatch" style="background:#c98f2c"></span>Natura 2000 — Oiseaux</label>
+          <button type="button" class="info-btn" aria-label="Informations sur la couche Natura 2000 Oiseaux">i</button>
+          <p class="couche-desc">Zones de protection spéciale (directive « Oiseaux »). <span class="meta">Source : DREAL/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+        </div>
+      </fieldset>
+
+      <fieldset class="groupe-couches">
+        <legend>Comment la nature se déplace-t-elle ?</legend>
+        <div class="couche" data-layer="tvb-corridors">
+          <label><input type="checkbox" data-layer-toggle="tvb-corridors"><span class="swatch" style="background:#1f8a8a"></span>Corridors écologiques</label>
+          <button type="button" class="info-btn" aria-label="Informations sur la couche corridors écologiques">i</button>
+          <p class="couche-desc">Axes de déplacement des espèces entre milieux naturels. <span class="meta">Source : SRCE Île-de-France, via IGN Géoportail · Couche à disponibilité variable</span></p>
+        </div>
+      </fieldset>
+
+      <fieldset class="groupe-couches">
+        <legend>Quelles espèces ont été observées ?</legend>
+        <div class="couche" data-layer="observations">
+          <label><input type="checkbox" data-layer-toggle="observations"><span class="swatch" style="background:#000091"></span>Observations d’espèces</label>
+          <button type="button" class="info-btn" aria-label="Informations sur la couche observations d’espèces">i</button>
+          <p class="couche-desc">Occurrences agrégées, toutes espèces confondues. <span class="meta">Source : GBIF.org · Mise à jour continue</span></p>
+          <p class="couche-note" id="obs-zoom-note" hidden>Cette couche s’affiche à partir d’un certain niveau de zoom. <button type="button" id="btn-zoomer-obs">Zoomer ici</button></p>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="bloc-plus-loin">
+      <h2>Aller plus loin</h2>
+      <ul>
+        <li><a href="https://inpn.mnhn.fr/accueil/index" target="_blank" rel="noopener">Inventaire national du patrimoine naturel (INPN)</a></li>
+        <li><a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF — occurrences d’espèces</a></li>
+        <li><a href="https://www.driee.ile-de-france.developpement-durable.gouv.fr/" target="_blank" rel="noopener">DRIEAT Île-de-France</a></li>
+        <li><a href="https://www.geoportail.gouv.fr/" target="_blank" rel="noopener">Géoportail (IGN)</a></li>
+      </ul>
+    </div>
+
+    <p class="alt-texte-lien"><button type="button" id="btn-alt-texte" aria-expanded="false" aria-controls="alt-texte">Afficher un résumé textuel de la carte</button></p>
+    <div id="alt-texte" class="alt-texte" hidden></div>
+    </div>
+  </aside>
+
+  <div class="carte-zone">
+    <div id="carte" aria-label="Carte interactive du Val-d’Oise"></div>
+
+    <div class="etat-vide" id="etat-vide">
+      <p><strong>Aucune sélection pour l’instant.</strong></p>
+      <p>Recherchez une commune ou cliquez directement sur la carte pour obtenir une lecture du territoire.</p>
+    </div>
+
+    <div class="etat-chargement" id="etat-chargement" hidden>
+      <p>Chargement des données…</p>
+    </div>
+
+    <div class="etat-erreur" id="etat-erreur" hidden role="alert">
+      <p id="etat-erreur-message"></p>
+      <button type="button" id="btn-reessayer">Réessayer</button>
+    </div>
+  </div>
+
+  <section class="tiroir" id="tiroir" aria-label="Fiche de résultat" hidden>
+    <div class="tiroir-entete">
+      <button type="button" id="btn-fermer-tiroir" aria-label="Fermer la fiche">✕</button>
+    </div>
+    <div class="tiroir-contenu" id="tiroir-contenu"></div>
+  </section>
+</div>
+
+<footer id="sources">
+  <div class="footer-ligne">
+    <span>DDT du Val-d’Oise · Observatoire de la biodiversité</span>
+    <span>Sources : geo.api.gouv.fr (IGN/DINUM) · IGN Géoportail (ZNIEFF, Natura 2000, SRCE) · GBIF.org</span>
+    <span id="footer-sync">Dernière synchronisation des données : au chargement de la page</span>
+    <span>Fonds de carte © CARTO, données © OpenStreetMap contributors</span>
+  </div>
+</footer>
+
+<div class="modal-fond" id="modal-apropos-fond" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-apropos-titre">
+    <button type="button" id="btn-fermer-apropos" aria-label="Fermer">✕</button>
+    <h2 id="modal-apropos-titre">À propos de cet observatoire</h2>
+    <p>Cette page présente, à titre indicatif, les espaces naturels protégés, les continuités écologiques et des observations d’espèces du Val-d’Oise, à partir de jeux de données publics.</p>
+    <p><strong>Les informations affichées n’ont pas de valeur réglementaire.</strong> Pour toute démarche opposable (urbanisme, projet d’aménagement, étude d’impact), consultez les documents officiels ou le service instructeur compétent de la DDT du Val-d’Oise.</p>
+    <table class="table-sources">
+      <caption>Sources et licences</caption>
+      <thead><tr><th>Donnée</th><th>Fournisseur</th><th>Licence</th><th>Fréquence</th></tr></thead>
+      <tbody>
+        <tr><td>Communes, département</td><td>IGN / DINUM — geo.api.gouv.fr</td><td>Licence Ouverte / Etalab</td><td>Continue</td></tr>
+        <tr><td>ZNIEFF 1 et 2</td><td>INPN / MNHN, diffusion IGN Géoportail</td><td>Licence Ouverte / Etalab</td><td>Continue</td></tr>
+        <tr><td>Natura 2000</td><td>DREAL / MNHN, diffusion IGN Géoportail</td><td>Licence Ouverte / Etalab</td><td>Continue</td></tr>
+        <tr><td>Corridors écologiques (SRCE)</td><td>DRIEAT Île-de-France, diffusion IGN Géoportail</td><td>Licence Ouverte / Etalab</td><td>Variable</td></tr>
+        <tr><td>Observations d’espèces</td><td>GBIF.org</td><td>Licences variables selon jeu de données (CC0/CC-BY)</td><td>Continue</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
