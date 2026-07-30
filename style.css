@@ -51,16 +51,11 @@ header img{width:120px;height:64px;object-fit:contain;object-position:left cente
 #carte{position:absolute;inset:0}
 
 .eyebrow{font-size:11px;font-weight:900;letter-spacing:.12em;color:var(--accent);margin:0 0 8px}
-h1{font-size:22px;line-height:1.2;color:var(--bleu-france);margin:0 0 10px}
-.promesse{font-size:14px;line-height:1.5;color:var(--texte-att);margin:0 0 16px}
+h1{font-size:22px;line-height:1.2;color:var(--bleu-france);margin:0 0 18px}
 
-.benefices{background:var(--gris-clair);border-radius:10px;padding:14px 16px;margin-bottom:18px}
-.benefices-titre{font-weight:700;margin:0 0 6px;font-size:13px}
-.benefices ul{margin:0;padding-left:18px;font-size:13px;line-height:1.5}
-
-.parcours{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:8px}
-.parcours li{display:flex;align-items:center;gap:10px;font-size:13px}
-.parcours .num{width:22px;height:22px;border-radius:50%;background:var(--bleu-france);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:0 0 auto}
+.bloc-apropos-outil{margin:0 0 20px}
+.bloc-apropos-outil h2{margin:0 0 6px}
+.bloc-apropos-outil p{font-size:13px;line-height:1.5;color:var(--texte-att);margin:0}
 
 .bloc-recherche{margin-bottom:14px}
 .bloc-recherche label{display:block;font-weight:700;font-size:13px;margin-bottom:6px}
