@@ -1,1 +1,87 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Biodiversité · DDT 95</title><link rel="stylesheet" href="style.css"></head><body><header><img src="https://ddt95.github.io/atlas-territorial-95/prefet-val-doise-logo.png" alt="Préfet du Val-d’Oise"><div><small>DIRECTION DÉPARTEMENTALE DES TERRITOIRES</small><strong>Biodiversité</strong></div><a href="https://ddt95.github.io/atlas-territorial-95/">← Atlas</a></header><main><p class="eyebrow">LECTURE 08 · PRÉFIGURATION</p><h1>Voir les milieux.<br><span>Comprendre les continuités.</span></h1><p class="lead">Une future carte des espaces remarquables, protections, continuités écologiques et observations d’espèces du Val-d’Oise.</p><section><h2>Ce que la page donnera à lire</h2><div class="grid"><article><b>01</b><h3>Espaces remarquables</h3><p>ZNIEFF, Natura 2000 et autres périmètres documentés.</p></article><article><b>02</b><h3>Continuités</h3><p>Réservoirs, corridors et obstacles aux déplacements des espèces.</p></article><article><b>03</b><h3>Observations</h3><p>Données d’espèces agrégées avec dates, sources et précautions d’usage.</p></article></div></section></main><footer>DDT du Val-d’Oise – Pôle géomatique</footer></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Biodiversité du Val-d’Oise : espaces naturels, parcs et jardins, ZNIEFF, Natura 2000, continuités écologiques et observations d’espèces.">
+  <meta name="theme-color" content="#000091">
+  <title>Biodiversité du Val-d’Oise</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#map">Aller à la carte</a>
+<div class="app">
+  <header class="institutional">
+    <div class="brand">
+      <img src="prefet-val-doise.svg" alt="Préfet du Val-d’Oise — Liberté Égalité Fraternité">
+      <div>
+        <span>BIODIVERSITÉ ET TERRITOIRES · VAL-D’OISE</span>
+        <strong>Biodiversité</strong>
+        <small>Val-d’Oise · espaces naturels · parcs et jardins · continuités · espèces</small>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="header-status" aria-live="polite"><i id="api-dot"></i><p><strong id="api-state">Chargement des données</strong><small id="api-detail">Référentiels territoriaux</small></p></div>
+      <a class="atlas-return" href="https://ddt95.github.io/atlas-territorial-95/">← Retour à l’Atlas</a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="left-panel" id="panel" aria-label="Commandes de la carte">
+      <div class="panel-scroll">
+        <h1>Rechercher et comprendre<br><span>la biodiversité</span></h1>
+
+        <form id="search-form" class="search">
+          <label class="sr-only" for="search-input">Commune du Val-d’Oise</label>
+          <div><input id="search-input" list="communes-list" type="search" placeholder="Commune du Val-d’Oise…" autocomplete="off"><button type="submit">Rechercher</button></div>
+          <datalist id="communes-list"></datalist>
+        </form>
+
+        <div class="reading"><b>Lecture de la carte</b><p>Activez les informations utiles, puis cliquez sur un espace naturel, un zonage ou une maille pour ouvrir sa fiche.</p></div>
+
+        <div class="main-actions"><button id="reset" type="button">Recentrer le Val-d’Oise</button><button id="mobile-panel" type="button" aria-expanded="false">Afficher les couches</button></div>
+
+        <div class="territory"><span>Territoire affiché</span><strong id="territory-name">Val-d’Oise · 95</strong></div>
+
+        <section class="purpose"><h2>À quoi sert cet outil ?</h2><p>Localiser les espaces naturels, parcs et jardins, ZNIEFF, sites Natura 2000, continuités écologiques et observations d’espèces disponibles.</p></section>
+
+        <section class="layers" aria-labelledby="layers-title">
+          <div class="section-title"><h2 id="layers-title">Couches de la carte</h2><button id="hide-all" type="button">Tout masquer</button></div>
+          <div id="layer-list"></div>
+        </section>
+
+        <div class="panel-links"><button id="sources-open" type="button">Sources et millésimes</button><button id="about-open" type="button">À propos</button></div>
+      </div>
+    </aside>
+
+    <section class="map-zone" aria-label="Carte interactive de la biodiversité">
+      <div id="map" tabindex="0" aria-label="Carte interactive du Val-d’Oise. Utilisez les boutons de zoom ou recherchez une commune."></div>
+      <div class="map-intro" id="map-intro" hidden><strong>Information</strong><span></span></div>
+      <div class="legend" id="legend" aria-label="Légende de la carte"><strong>Légende</strong><div id="legend-items"></div></div>
+      <div class="map-note">Masque du Val-d’Oise · fond OpenStreetMap</div>
+    </section>
+  </main>
+
+  <footer><span><b>BIODIVERSITÉ · DDT 95</b> · données territoriales versionnées</span><span>DDT Val-d’Oise · Pôle géomatique · Leaflet 1.9.4</span></footer>
+</div>
+
+<aside class="drawer" id="drawer" aria-labelledby="drawer-title" aria-hidden="true">
+  <button class="drawer-close" id="drawer-close" type="button" aria-label="Fermer la fiche">×</button>
+  <div class="drawer-head"><p>FICHE TERRITORIALE</p><h2 id="drawer-title">Aucune sélection</h2><span id="drawer-sub">Cliquez dans le Val-d’Oise</span></div>
+  <div class="drawer-summary" id="drawer-summary"><strong>À retenir</strong><p>Les informations essentielles apparaîtront ici.</p></div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-actions"><button id="drawer-center" type="button">Recentrer</button><button id="drawer-copy" type="button">Copier le lien</button><button id="drawer-print" type="button">Imprimer</button><a id="drawer-source" href="https://inpn.mnhn.fr/" target="_blank" rel="noopener">Source officielle ↗</a></div>
+</aside>
+
+<div class="modal" id="info-modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button id="modal-close" type="button" aria-label="Fermer">×</button><p class="modal-kicker">BIODIVERSITÉ · DDT 95</p><h2 id="modal-title">À propos</h2><div id="modal-content"></div></div></div>
+<div class="sr-only" id="text-alternative" aria-live="polite">Aucune zone sélectionnée.</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
+<script src="data/biodiversite-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
