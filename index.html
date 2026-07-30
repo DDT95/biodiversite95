@@ -3,180 +3,223 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Observatoire de la biodiversité · DDT du Val-d'Oise</title>
-<meta name="description" content="Carte interactive des espaces naturels protégés, des continuités écologiques et des observations d'espèces du Val-d'Oise.">
+<meta name="description" content="Observatoire de la biodiversité du Val-d'Oise — ZNIEFF, Natura 2000, continuités écologiques et observations d'espèces">
+<meta name="theme-color" content="#000091">
+<title>Observatoire de la biodiversité · Val-d'Oise</title>
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<a class="skip-link" href="#carte">Aller directement à la carte</a>
+<a class="skip-link" href="#map">Aller directement à la carte</a>
 <a class="skip-link" href="#panneau">Aller directement au panneau de commande</a>
 
-<header>
-  <img src="https://ddt95.github.io/atlas-territorial-95/prefet-val-doise-logo.png" alt="Préfet du Val-d’Oise — Liberté Égalité Fraternité">
-  <div class="titre-bloc">
-    <small>DIRECTION DÉPARTEMENTALE DES TERRITOIRES DU VAL-D’OISE</small>
-    <strong>Observatoire de la biodiversité</strong>
-  </div>
-  <nav class="header-actions" aria-label="Liens principaux">
-    <a href="https://ddt95.github.io/atlas-territorial-95/">← Atlas territorial</a>
-    <a href="#sources">Sources des données</a>
-    <button type="button" id="btn-apropos" aria-haspopup="dialog">À propos</button>
-  </nav>
-</header>
-
-<div class="status-bar" id="status-bar" role="status" aria-live="polite">
-  <span class="status-item" data-source="communes"><i class="dot" aria-hidden="true"></i>Communes (geo.api.gouv.fr)</span>
-  <span class="status-item" data-source="protections"><i class="dot" aria-hidden="true"></i>Espaces protégés (IGN Géoportail)</span>
-  <span class="status-item" data-source="continuites"><i class="dot" aria-hidden="true"></i>Continuités écologiques (IGN Géoportail)</span>
-  <span class="status-item" data-source="observations"><i class="dot" aria-hidden="true"></i>Observations d’espèces (GBIF)</span>
-</div>
-
 <div class="app">
-  <aside class="panel" id="panneau" aria-label="Panneau de commande">
-    <button type="button" id="btn-panneau-toggle" class="panneau-toggle" aria-expanded="true" aria-controls="panneau-corps">
-      <span class="panneau-toggle-poignee" aria-hidden="true"></span>
-      <span class="panneau-toggle-texte">Réduire le panneau</span>
-    </button>
-    <div id="panneau-corps">
-    <p class="eyebrow">BIODIVERSITÉ · VAL-D’OISE</p>
-    <h1>Milieux naturels et espèces du Val-d’Oise</h1>
-
-    <div class="bloc-recherche">
-      <label for="recherche-commune">Rechercher une commune</label>
-      <div class="recherche-champ">
-        <input type="text" id="recherche-commune" placeholder="Ex. Auvers-sur-Oise" autocomplete="off" aria-describedby="recherche-aide" aria-expanded="false" role="combobox" aria-autocomplete="list" aria-controls="recherche-suggestions">
-        <button type="button" id="btn-rechercher">Rechercher</button>
+  <header class="topbar">
+    <img class="brand-logo" src="data:image/jpeg;base64,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" alt="Préfet du Val-d’Oise — Liberté Égalité Fraternité">
+    <div class="titleblock">
+      <div class="eyebrow">ZNIEFF · Natura 2000 · continuités écologiques · Val-d’Oise</div>
+      <h1>Observatoire de la biodiversité</h1>
+      <div class="subtitle"><strong>Val-d’Oise</strong> · milieux naturels · protections · espèces</div>
+    </div>
+    <div class="top-actions">
+      <nav class="top-links" aria-label="Liens principaux">
+        <a href="https://ddt95.github.io/atlas-territorial-95/">← Atlas territorial</a>
+        <a href="#sources">Sources</a>
+      </nav>
+      <button type="button" class="btn-about" id="btn-about-open" aria-haspopup="dialog">À propos</button>
+      <div class="livebox" aria-live="polite">
+        <span class="live-dot" id="live-dot"></span>
+        <div style="min-width:0">
+          <div class="live-text" id="live-text">Initialisation</div>
+          <div class="live-sub" id="live-sub">geo.api.gouv.fr · IGN · GBIF</div>
+        </div>
       </div>
-      <ul id="recherche-suggestions" class="suggestions" role="listbox" hidden></ul>
-      <p id="recherche-aide" class="aide">Lecture de la carte : activez les couches utiles, puis cliquez sur un point pour ouvrir sa fiche.</p>
     </div>
+  </header>
 
-    <div class="territoire-actif">
-      <span class="chip" id="chip-territoire">Territoire : Val-d’Oise</span>
-      <button type="button" id="btn-nouvelle-recherche" hidden>Nouvelle recherche</button>
-    </div>
+  <div class="progress"><span id="progress-bar"></span></div>
 
-    <div class="bloc-apropos-outil">
-      <h2>À quoi sert cet outil ?</h2>
-      <p>Repérer les espaces naturels protégés, les continuités écologiques et les espèces observées, pour éclairer un projet ou une démarche sur le Val-d’Oise.</p>
-    </div>
+  <main class="main">
+    <aside class="panel" id="panneau" aria-label="Panneau de commande">
+      <button type="button" id="panel-toggle" class="panel-toggle" aria-expanded="true" aria-controls="panel-scroll">
+        <span class="panel-toggle-handle" aria-hidden="true"></span>
+        <span id="panel-toggle-text">Réduire le panneau</span>
+      </button>
+      <div class="panel-head">
+        <div class="question">Rechercher et comprendre <span>la biodiversité</span></div>
 
-    <div class="bloc-couches">
-      <div class="couches-entete">
-        <h2>Couches de lecture</h2>
-        <button type="button" id="btn-tout-masquer">Tout masquer</button>
+        <form id="search-form" class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+          </svg>
+          <input id="search-input" type="search" placeholder="Ex. Auvers-sur-Oise" autocomplete="off" aria-label="Rechercher une commune du Val-d’Oise" aria-describedby="search-aide" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="search-suggestions">
+          <button class="search-submit" type="submit">Rechercher</button>
+        </form>
+        <ul id="search-suggestions" class="suggestions" role="listbox" hidden></ul>
+        <p id="search-aide" class="sr-only" style="position:absolute;left:-9999px">Saisissez le nom d’une commune du Val-d’Oise.</p>
+
+        <div class="info-box">
+          <div class="t">Lecture de la carte</div>
+          <div class="b">Activez les couches utiles ci-dessous, puis cliquez sur un point de la carte pour ouvrir sa fiche.</div>
+        </div>
+
+        <div class="actions actions-simple">
+          <button class="action primary" id="btn-recenter" type="button">Recentrer le Val-d’Oise</button>
+          <button class="action" id="btn-new-search" type="button" hidden>Nouvelle recherche</button>
+        </div>
+
+        <div class="territoire-chip" id="territoire-chip">
+          <span id="territoire-label">Val-d’Oise</span>
+        </div>
       </div>
 
-      <fieldset class="groupe-couches">
-        <legend>Quels espaces sont protégés ?</legend>
-        <div class="couche" data-layer="znieff1">
-          <label><input type="checkbox" data-layer-toggle="znieff1"><span class="swatch" style="background:#2c7a4b"></span>ZNIEFF de type 1</label>
-          <button type="button" class="info-btn" aria-label="Informations sur la couche ZNIEFF de type 1">i</button>
-          <p class="couche-desc">Secteurs de superficie limitée, à forte valeur biologique. <span class="meta">Source : INPN/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+      <div class="list" id="panel-scroll">
+        <div class="edu-card">
+          <h3>À quoi sert cet outil&nbsp;?</h3>
+          <p>Repérer les espaces naturels protégés, les continuités écologiques et les espèces observées, pour éclairer un projet ou une démarche sur le Val-d’Oise.</p>
         </div>
-        <div class="couche" data-layer="znieff2">
-          <label><input type="checkbox" data-layer-toggle="znieff2"><span class="swatch" style="background:#6aab7c"></span>ZNIEFF de type 2</label>
-          <button type="button" class="info-btn" aria-label="Informations sur la couche ZNIEFF de type 2">i</button>
-          <p class="couche-desc">Grands ensembles naturels riches, peu modifiés. <span class="meta">Source : INPN/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+
+        <div class="edu-card layer-card">
+          <div class="layer-card-head">
+            <h3>Couches de lecture</h3>
+            <button type="button" class="layer-clear" id="btn-layers-clear">Tout masquer</button>
+          </div>
+
+          <div class="layer-group">
+            <p class="layer-group-title">Quels espaces sont protégés ?</p>
+            <div class="layer-row" data-layer-row="znieff1">
+              <span class="layer-swatch" style="background:#2c7a4b"></span>
+              <div><strong>ZNIEFF de type 1</strong><small>Secteurs de superficie limitée, à forte valeur biologique · INPN/MNHN</small></div>
+              <button type="button" class="layer-toggle" data-layer-toggle="znieff1" aria-pressed="false" aria-label="Activer la couche ZNIEFF de type 1"></button>
+            </div>
+            <div class="layer-row" data-layer-row="znieff2">
+              <span class="layer-swatch" style="background:#6aab7c"></span>
+              <div><strong>ZNIEFF de type 2</strong><small>Grands ensembles naturels riches, peu modifiés · INPN/MNHN</small></div>
+              <button type="button" class="layer-toggle" data-layer-toggle="znieff2" aria-pressed="false" aria-label="Activer la couche ZNIEFF de type 2"></button>
+            </div>
+            <div class="layer-row" data-layer-row="n2000-habitats">
+              <span class="layer-swatch" style="background:#b06a2c"></span>
+              <div><strong>Natura 2000 — Habitats</strong><small>Sites d’intérêt communautaire · DREAL/MNHN</small></div>
+              <button type="button" class="layer-toggle" data-layer-toggle="n2000-habitats" aria-pressed="false" aria-label="Activer la couche Natura 2000 Habitats"></button>
+            </div>
+            <div class="layer-row" data-layer-row="n2000-oiseaux">
+              <span class="layer-swatch" style="background:#c98f2c"></span>
+              <div><strong>Natura 2000 — Oiseaux</strong><small>Zones de protection spéciale · DREAL/MNHN</small></div>
+              <button type="button" class="layer-toggle" data-layer-toggle="n2000-oiseaux" aria-pressed="false" aria-label="Activer la couche Natura 2000 Oiseaux"></button>
+            </div>
+          </div>
+
+          <div class="layer-group">
+            <p class="layer-group-title">Comment la nature se déplace-t-elle ?</p>
+            <div class="layer-row" data-layer-row="tvb-corridors">
+              <span class="layer-swatch" style="background:#1f8a8a"></span>
+              <div><strong>Corridors écologiques</strong><small>Trame verte et bleue · SRCE Île-de-France</small></div>
+              <button type="button" class="layer-toggle" data-layer-toggle="tvb-corridors" aria-pressed="false" aria-label="Activer la couche corridors écologiques"></button>
+            </div>
+          </div>
+
+          <div class="layer-group">
+            <p class="layer-group-title">Quelles espèces ont été observées ?</p>
+            <div class="layer-row" data-layer-row="observations">
+              <span class="layer-swatch" style="background:#000091"></span>
+              <div><strong>Observations d’espèces</strong><small>Occurrences agrégées · GBIF.org</small></div>
+              <button type="button" class="layer-toggle" data-layer-toggle="observations" aria-pressed="false" aria-label="Activer la couche observations d’espèces"></button>
+            </div>
+            <p class="layer-note" id="obs-zoom-note" hidden>Cette couche s’affiche à partir d’un certain zoom. <button type="button" id="btn-zoom-obs">Zoomer ici</button></p>
+          </div>
         </div>
-        <div class="couche" data-layer="n2000-habitats">
-          <label><input type="checkbox" data-layer-toggle="n2000-habitats"><span class="swatch" style="background:#b06a2c"></span>Natura 2000 — Habitats</label>
-          <button type="button" class="info-btn" aria-label="Informations sur la couche Natura 2000 Habitats">i</button>
-          <p class="couche-desc">Sites d’intérêt communautaire (directive « Habitats »). <span class="meta">Source : DREAL/MNHN, via IGN Géoportail · Millésime en continu</span></p>
+
+        <div class="edu-card source-monitor-card">
+          <div class="source-monitor-title">
+            <div>
+              <h3>Sources mobilisées</h3>
+              <p>État des connexions aux services publics utilisés par l’observatoire.</p>
+            </div>
+            <span class="global-api-state" id="global-api-state">Initialisation</span>
+          </div>
+          <div class="source-monitor" id="source-monitor">
+            <div class="source-monitor-row" data-source="communes">
+              <span class="api-light pending"></span>
+              <div><strong>geo.api.gouv.fr</strong><small>Communes et contour du Val-d’Oise</small></div>
+              <span class="api-state">En attente</span>
+            </div>
+            <div class="source-monitor-row" data-source="protections">
+              <span class="api-light pending"></span>
+              <div><strong>IGN Géoportail</strong><small>ZNIEFF, Natura 2000</small></div>
+              <span class="api-state">En attente</span>
+            </div>
+            <div class="source-monitor-row" data-source="continuites">
+              <span class="api-light pending"></span>
+              <div><strong>IGN Géoportail</strong><small>Corridors écologiques (SRCE)</small></div>
+              <span class="api-state">En attente</span>
+            </div>
+            <div class="source-monitor-row" data-source="observations">
+              <span class="api-light pending"></span>
+              <div><strong>GBIF.org</strong><small>Observations d’espèces</small></div>
+              <span class="api-state">En attente</span>
+            </div>
+          </div>
         </div>
-        <div class="couche" data-layer="n2000-oiseaux">
-          <label><input type="checkbox" data-layer-toggle="n2000-oiseaux"><span class="swatch" style="background:#c98f2c"></span>Natura 2000 — Oiseaux</label>
-          <button type="button" class="info-btn" aria-label="Informations sur la couche Natura 2000 Oiseaux">i</button>
-          <p class="couche-desc">Zones de protection spéciale (directive « Oiseaux »). <span class="meta">Source : DREAL/MNHN, via IGN Géoportail · Millésime en continu</span></p>
-        </div>
-      </fieldset>
 
-      <fieldset class="groupe-couches">
-        <legend>Comment la nature se déplace-t-elle ?</legend>
-        <div class="couche" data-layer="tvb-corridors">
-          <label><input type="checkbox" data-layer-toggle="tvb-corridors"><span class="swatch" style="background:#1f8a8a"></span>Corridors écologiques</label>
-          <button type="button" class="info-btn" aria-label="Informations sur la couche corridors écologiques">i</button>
-          <p class="couche-desc">Axes de déplacement des espèces entre milieux naturels. <span class="meta">Source : SRCE Île-de-France, via IGN Géoportail · Couche à disponibilité variable</span></p>
-        </div>
-      </fieldset>
+        <p class="about-small" style="padding:0 4px"><button type="button" id="btn-alt-texte" aria-expanded="false" aria-controls="alt-texte" style="border:0;background:none;color:var(--blue);font-weight:900;text-decoration:underline;padding:0;font-size:11px">Afficher un résumé textuel de la carte</button></p>
+        <div id="alt-texte" class="notice" style="margin:8px 4px" hidden></div>
+      </div>
+    </aside>
 
-      <fieldset class="groupe-couches">
-        <legend>Quelles espèces ont été observées ?</legend>
-        <div class="couche" data-layer="observations">
-          <label><input type="checkbox" data-layer-toggle="observations"><span class="swatch" style="background:#000091"></span>Observations d’espèces</label>
-          <button type="button" class="info-btn" aria-label="Informations sur la couche observations d’espèces">i</button>
-          <p class="couche-desc">Occurrences agrégées, toutes espèces confondues. <span class="meta">Source : GBIF.org · Mise à jour continue</span></p>
-          <p class="couche-note" id="obs-zoom-note" hidden>Cette couche s’affiche à partir d’un certain niveau de zoom. <button type="button" id="btn-zoomer-obs">Zoomer ici</button></p>
-        </div>
-      </fieldset>
-    </div>
+    <section class="map-zone">
+      <div class="map-card">
+        <div id="map" aria-label="Carte interactive du Val-d’Oise"></div>
+      </div>
+    </section>
+  </main>
 
-    <div class="bloc-plus-loin">
-      <h2>Aller plus loin</h2>
-      <ul>
-        <li><a href="https://inpn.mnhn.fr/accueil/index" target="_blank" rel="noopener">Inventaire national du patrimoine naturel (INPN)</a></li>
-        <li><a href="https://www.gbif.org/" target="_blank" rel="noopener">GBIF — occurrences d’espèces</a></li>
-        <li><a href="https://www.driee.ile-de-france.developpement-durable.gouv.fr/" target="_blank" rel="noopener">DRIEAT Île-de-France</a></li>
-        <li><a href="https://www.geoportail.gouv.fr/" target="_blank" rel="noopener">Géoportail (IGN)</a></li>
-      </ul>
-    </div>
-
-    <p class="alt-texte-lien"><button type="button" id="btn-alt-texte" aria-expanded="false" aria-controls="alt-texte">Afficher un résumé textuel de la carte</button></p>
-    <div id="alt-texte" class="alt-texte" hidden></div>
-    </div>
-  </aside>
-
-  <div class="carte-zone">
-    <div id="carte" aria-label="Carte interactive du Val-d’Oise"></div>
-
-    <div class="etat-vide" id="etat-vide">
-      <p><strong>Aucune sélection pour l’instant.</strong></p>
-      <p>Recherchez une commune ou cliquez directement sur la carte pour obtenir une lecture du territoire.</p>
-    </div>
-
-    <div class="etat-chargement" id="etat-chargement" hidden>
-      <p>Chargement des données…</p>
-    </div>
-
-    <div class="etat-erreur" id="etat-erreur" hidden role="alert">
-      <p id="etat-erreur-message"></p>
-      <button type="button" id="btn-reessayer">Réessayer</button>
-    </div>
-  </div>
-
-  <section class="tiroir" id="tiroir" aria-label="Fiche de résultat" hidden>
-    <div class="tiroir-entete">
-      <button type="button" id="btn-fermer-tiroir" aria-label="Fermer la fiche">✕</button>
-    </div>
-    <div class="tiroir-contenu" id="tiroir-contenu"></div>
-  </section>
+  <footer class="footer">
+    <span id="status-line"><b>Observatoire de la biodiversité</b> · DDT du Val-d’Oise</span>
+    <span id="footer-sync">Dernière synchronisation : au chargement de la page</span>
+    <span>Sources : geo.api.gouv.fr (IGN/DINUM) · IGN Géoportail (ZNIEFF, Natura 2000, SRCE) · GBIF.org</span>
+    <span>Fonds de carte © CARTO, données © OpenStreetMap contributors</span>
+  </footer>
 </div>
 
-<footer id="sources">
-  <div class="footer-ligne">
-    <span>DDT du Val-d’Oise · Observatoire de la biodiversité</span>
-    <span>Sources : geo.api.gouv.fr (IGN/DINUM) · IGN Géoportail (ZNIEFF, Natura 2000, SRCE) · GBIF.org</span>
-    <span id="footer-sync">Dernière synchronisation des données : au chargement de la page</span>
-    <span>Fonds de carte © CARTO, données © OpenStreetMap contributors</span>
+<aside class="drawer" id="drawer" aria-label="Fiche de résultat">
+  <div class="drawer-head">
+    <button class="close" id="drawer-close" aria-label="Fermer">×</button>
+    <div class="drawer-city" id="drawer-title">Sélection</div>
+    <div class="drawer-sub" id="drawer-sub">Recherchez une commune ou cliquez sur la carte</div>
+    <div class="drawer-actions">
+      <button type="button" id="act-recentrer">Recentrer</button>
+      <button type="button" id="act-nouvelle-recherche">Nouvelle recherche</button>
+      <button type="button" id="act-copier-lien">Copier un lien</button>
+      <button type="button" id="act-imprimer">Imprimer / Exporter</button>
+      <button type="button" class="drawer-export" id="act-source-officielle">Ouvrir la source officielle (INPN)</button>
+    </div>
+    <div class="drawer-summary" id="drawer-summary">
+      <div class="summary-line">
+        <div class="summary-status" id="summary-status">Aucune sélection</div>
+        <div class="summary-date" id="summary-date">—</div>
+      </div>
+      <div class="summary-text" id="summary-text">Recherchez une commune ou cliquez sur la carte pour obtenir une lecture du territoire.</div>
+    </div>
   </div>
-</footer>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
 
-<div class="modal-fond" id="modal-apropos-fond" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-apropos-titre">
-    <button type="button" id="btn-fermer-apropos" aria-label="Fermer">✕</button>
-    <h2 id="modal-apropos-titre">À propos de cet observatoire</h2>
-    <p>Cette page présente, à titre indicatif, les espaces naturels protégés, les continuités écologiques et des observations d’espèces du Val-d’Oise, à partir de jeux de données publics.</p>
-    <p><strong>Les informations affichées n’ont pas de valeur réglementaire.</strong> Pour toute démarche opposable (urbanisme, projet d’aménagement, étude d’impact), consultez les documents officiels ou le service instructeur compétent de la DDT du Val-d’Oise.</p>
-    <table class="table-sources">
-      <caption>Sources et licences</caption>
-      <thead><tr><th>Donnée</th><th>Fournisseur</th><th>Licence</th><th>Fréquence</th></tr></thead>
+<div class="about-modal" id="about-modal" hidden>
+  <div class="about-card">
+    <button class="about-close" id="about-close" type="button" aria-label="Fermer">×</button>
+    <div class="about-icon">i</div>
+    <h2>Observatoire de la biodiversité</h2>
+    <p>Outil exploratoire présentant, à titre indicatif, les espaces naturels protégés, les continuités écologiques et des observations d’espèces du Val-d’Oise.</p>
+    <p><strong>Les informations affichées n’ont pas de valeur réglementaire.</strong> Pour toute démarche opposable, consultez les documents officiels ou le service instructeur compétent de la DDT du Val-d’Oise.</p>
+    <p class="about-credit">DDT du Val-d’Oise · Observatoire de la biodiversité.</p>
+    <table class="about-table">
+      <caption class="about-small" style="text-align:left;margin-bottom:4px">Sources et licences</caption>
+      <thead><tr><th>Donnée</th><th>Fournisseur</th><th>Licence</th></tr></thead>
       <tbody>
-        <tr><td>Communes, département</td><td>IGN / DINUM — geo.api.gouv.fr</td><td>Licence Ouverte / Etalab</td><td>Continue</td></tr>
-        <tr><td>ZNIEFF 1 et 2</td><td>INPN / MNHN, diffusion IGN Géoportail</td><td>Licence Ouverte / Etalab</td><td>Continue</td></tr>
-        <tr><td>Natura 2000</td><td>DREAL / MNHN, diffusion IGN Géoportail</td><td>Licence Ouverte / Etalab</td><td>Continue</td></tr>
-        <tr><td>Corridors écologiques (SRCE)</td><td>DRIEAT Île-de-France, diffusion IGN Géoportail</td><td>Licence Ouverte / Etalab</td><td>Variable</td></tr>
-        <tr><td>Observations d’espèces</td><td>GBIF.org</td><td>Licences variables selon jeu de données (CC0/CC-BY)</td><td>Continue</td></tr>
+        <tr><td>Communes, département</td><td>IGN / DINUM</td><td>Licence Ouverte</td></tr>
+        <tr><td>ZNIEFF, Natura 2000</td><td>INPN/MNHN, DREAL</td><td>Licence Ouverte</td></tr>
+        <tr><td>Corridors écologiques</td><td>DRIEAT Île-de-France</td><td>Licence Ouverte</td></tr>
+        <tr><td>Observations d’espèces</td><td>GBIF.org</td><td>CC0 / CC-BY</td></tr>
       </tbody>
     </table>
   </div>
