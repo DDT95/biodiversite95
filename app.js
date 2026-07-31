@@ -11,6 +11,7 @@ const DATA = {
   naturaHabitat:'data/natura-habitat.json', naturaOiseaux:'data/natura-oiseaux.json',
   pnr:'data/parcs-naturels-regionaux.json', reserves:'data/reserves-naturelles.json',
   foretsProtection:'data/forets-protection.geojson',
+  foretsPubliques:'data/forets-publiques.geojson',
   protections:'data/espaces-naturels-proteges.json', vegetation:'data/zones-vegetation.geojson?v=20260731-2',
   jardins:'data/jardins-remarquables.json', connexions:'data/connexions-ecologiques.json',
   observations:'data/observations-mailles.json'
@@ -19,6 +20,7 @@ const CONFIG = {
   bounds:[[48.88,1.60],[49.25,2.62]],
   layers:[
     {id:'vegetation',group:'Espaces de nature',label:'Boisements et végétation',description:'Bois, forêts, bosquets, landes, peupleraies et vergers.',color:'#5b8c3a',source:'IGN · BD TOPO',active:true},
+    {id:'foretsPubliques',group:'Espaces de nature',label:'Forêts publiques',description:'Forêts domaniales, communales, départementales et régionales.',color:'#174f2d',source:'IGN · BD TOPO · ONF',active:true},
     {id:'jardins',group:'Espaces de nature',label:'Jardins remarquables',description:'Jardins labellisés par le ministère de la Culture.',color:'#95c11f',source:'DRAC · Région Île-de-France',active:false},
     {id:'pnr',group:'Espaces protégés',label:'Parcs naturels régionaux',description:'Vexin français et Oise–Pays de France.',color:'#2f6f3e',source:'INPN · API Carto IGN',active:true},
     {id:'foretsProtection',group:'Espaces protégés',label:'Forêts de protection',description:'Forêt de Montmorency — servitude d’utilité publique A7.',color:'#004d2c',source:'Géoportail de l’urbanisme · SUP A7',active:true},
@@ -55,6 +57,27 @@ function propertyRows(properties,excluded=[]){
   const rows=Object.entries(properties||{}).filter(([key,value])=>!skip.has(key)&&valueLabel(value)!==null).map(([key,value])=>`<div><dt>${escapeHtml(fieldLabel(key))}</dt><dd>${escapeHtml(valueLabel(value))}</dd></div>`).join('');
   return rows||'<p class="state">Aucun attribut complémentaire publié.</p>';
 }
+function featuresAtPoint(ids,latlng){
+  const point=turf.point([latlng.lng,latlng.lat]);const hits=[];
+  for(const id of ids)for(const feature of state.data[id]?.features||[])try{if(feature.geometry?.type.includes('Polygon')&&turf.booleanPointInPolygon(point,feature))hits.push({id,feature})}catch{}
+  return hits;
+}
+function forestBody(feature,latlng){
+  const p=feature.properties||{};
+  const commune=(state.data.communes.features||[]).find(f=>turf.booleanPointInPolygon(turf.point([latlng.lng,latlng.lat]),f));
+  const publicForest=featuresAtPoint(['foretsPubliques'],latlng)[0]?.feature;
+  const zonages=featuresAtPoint(['foretsProtection','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','pnr'],latlng);
+  const forestRows=[
+    ['Formation végétale',p.nature||'Non renseignée'],
+    ['Surface cartographique',areaLabel(turf.area(feature)/10000)],
+    ['Commune',commune?.properties?.nom||'Non renseignée'],
+    ['Forêt publique',publicForest?.properties?.toponyme||'Non identifiée dans le référentiel public'],
+    ['Statut public',publicForest?.properties?.nature||null],
+    ['Source gestionnaire',publicForest?.properties?.sources||null]
+  ].filter(([,value])=>value).map(([label,value])=>`<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`).join('');
+  const zoningRows=zonages.length?zonages.map(({id,feature:f})=>{const def=CONFIG.layers.find(x=>x.id===id);return `<div><dt>${escapeHtml(def.label)}</dt><dd>${escapeHtml(nameFor(id,f.properties||{}))}</dd></div>`}).join(''):'<p class="state">Aucun zonage de protection ou d’inventaire recensé à ce point.</p>';
+  return `<section class="result-section"><h3>Boisement</h3><dl class="data-grid">${forestRows}</dl></section><section class="result-section"><h3>Protections et inventaires au point cliqué</h3><dl class="data-grid">${zoningRows}</dl></section><section class="result-section"><h3>Référentiel</h3><dl class="data-grid"><div><dt>Occupation du sol</dt><dd>IGN · BD TOPO</dd></div><div><dt>Forêts publiques</dt><dd>IGN · ONF</dd></div><div><dt>Synchronisation</dt><dd>31 juillet 2026</dd></div></dl></section>`;
+}
 
 function renderControls(){
   const root=$('layer-list'); const groups=[...new Set(CONFIG.layers.map(x=>x.group))];
@@ -73,6 +96,7 @@ function toggleLayer(id,forced){
 function styleFor(id,feature){
   const color=CONFIG.layers.find(x=>x.id===id).color;
   if(id==='vegetation')return{color,weight:1.1,opacity:.95,fillColor:color,fillOpacity:.48};
+  if(id==='foretsPubliques')return{color,weight:3,opacity:1,fillColor:color,fillOpacity:.12};
   if(id==='pnr')return{color,weight:2.2,dashArray:'8 5',opacity:.9,fillColor:color,fillOpacity:.08};
   if(id==='foretsProtection')return{color,weight:3,opacity:1,fillColor:color,fillOpacity:.32};
   if(id==='protections'||id==='reserves')return{color,weight:2,opacity:.95,fillColor:color,fillOpacity:.2};
@@ -93,9 +117,11 @@ function makeLayer(id,data){
 function selectFeature(id,feature,layer,latlng){
   if(!insideDepartment(latlng))return;
   state.selectedPoint=latlng; const p=feature.properties||{}; const def=CONFIG.layers.find(x=>x.id===id);
-  const sourceUrl=p.url||(id==='connexions'?'https://data.iledefrance.fr/explore/dataset/connexion-ecologique-sdrif-e/':id==='observations'?'https://geonature.arb-idf.fr/atlas/':id==='foretsProtection'?'https://www.geoportail-urbanisme.gouv.fr/':id==='vegetation'||id==='protections'?'https://geoservices.ign.fr/bdtopo':id==='jardins'?'https://data.iledefrance.fr/explore/dataset/liste-des-jardins-remarquables/':'https://inpn.mnhn.fr/');
-  const body=`<section class="result-section"><h3>Informations disponibles</h3><dl class="data-grid">${propertyRows(p)}</dl></section><section class="result-section"><h3>Référentiel</h3><dl class="data-grid"><div><dt>Couche</dt><dd>${escapeHtml(def.label)}</dd></div><div><dt>Producteur</dt><dd>${escapeHtml(def.source)}</dd></div><div><dt>Synchronisation</dt><dd>30 juillet 2026</dd></div></dl></section>`;
-  openDrawer(nameFor(id,p),def.label,body,sourceUrl);
+  const sourceUrl=p.url||(id==='connexions'?'https://data.iledefrance.fr/explore/dataset/connexion-ecologique-sdrif-e/':id==='observations'?'https://geonature.arb-idf.fr/atlas/':id==='foretsProtection'?'https://www.geoportail-urbanisme.gouv.fr/':id==='vegetation'||id==='foretsPubliques'||id==='protections'?'https://geoservices.ign.fr/bdtopo':id==='jardins'?'https://data.iledefrance.fr/explore/dataset/liste-des-jardins-remarquables/':'https://inpn.mnhn.fr/');
+  const publicForest=id==='vegetation'?featuresAtPoint(['foretsPubliques'],latlng)[0]?.feature:null;
+  const title=publicForest?.properties?.toponyme||nameFor(id,p);
+  const body=id==='vegetation'?forestBody(feature,latlng):`<section class="result-section"><h3>Informations disponibles</h3><dl class="data-grid">${propertyRows(p)}</dl></section><section class="result-section"><h3>Référentiel</h3><dl class="data-grid"><div><dt>Couche</dt><dd>${escapeHtml(def.label)}</dd></div><div><dt>Producteur</dt><dd>${escapeHtml(def.source)}</dd></div><div><dt>Synchronisation</dt><dd>31 juillet 2026</dd></div></dl></section>`;
+  openDrawer(title,def.label,body,sourceUrl);
   layer.setStyle({...styleFor(id,feature),weight:4});
 }
 function openDrawer(title,sub,body,source){
@@ -136,7 +162,7 @@ async function load(){
     state.communesLayer=L.geoJSON(state.data.communes,{interactive:false,style:{color:'#68707a',weight:1,fillOpacity:0}}).addTo(map);
     L.geoJSON(state.department,{interactive:false,style:{color:'#343b45',weight:2.4,opacity:.8,fillOpacity:0}}).addTo(map);
     state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[24,24],animate:false});
-    const layerIds=['vegetation','jardins','pnr','foretsProtection','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
+    const layerIds=['vegetation','foretsPubliques','jardins','pnr','foretsProtection','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
     for(let i=0;i<layerIds.length;i++){const id=layerIds[i];$('loader-detail').textContent=`Installation des couches · ${i+1}/${layerIds.length}`;await new Promise(resolve=>setTimeout(resolve,0));makeLayer(id,state.data[id])}
     $('communes-list').innerHTML=state.data.communes.features.sort((a,b)=>a.properties.nom.localeCompare(b.properties.nom,'fr')).map(f=>`<option value="${escapeHtml(f.properties.nom)}"></option>`).join('');
     $('api-dot').classList.add('ok');$('api-state').textContent='Données disponibles';$('api-detail').textContent='Espaces naturels · zonages · espèces';$('map-loader').classList.add('hidden');setTimeout(()=>$('map-loader').hidden=true,250);
