@@ -56,8 +56,8 @@ function propertyRows(properties,excluded=[]){
 
 function renderControls(){
   const root=$('layer-list'); const groups=[...new Set(CONFIG.layers.map(x=>x.group))];
-  root.innerHTML=groups.map(group=>`<div class="layer-group"><strong>${group}</strong>${CONFIG.layers.filter(x=>x.group===group).map(x=>`<label class="layer-row"><input type="checkbox" data-layer="${x.id}" aria-label="Afficher ${x.label}" ${x.active?'checked':''}><div class="layer-copy"><strong>${x.label}</strong><span>${x.description}<br>${x.source}</span></div><i class="swatch" style="background:${x.color}"></i></label>`).join('')}</div>`).join('');
-  root.querySelectorAll('input[data-layer]').forEach(input=>input.addEventListener('change',()=>toggleLayer(input.dataset.layer,input.checked)));
+  root.innerHTML=groups.map(group=>`<div class="layer-group"><strong>${group}</strong>${CONFIG.layers.filter(x=>x.group===group).map(x=>`<div class="layer-row" data-layer-row="${x.id}"><button class="switch" type="button" data-layer="${x.id}" aria-label="Afficher ${x.label}" aria-pressed="${x.active}"></button><div class="layer-copy"><strong>${x.label}</strong><span>${x.description}<br>${x.source}</span></div><i class="swatch" style="background:${x.color}"></i></div>`).join('')}</div>`).join('');
+  root.querySelectorAll('[data-layer-row]').forEach(row=>row.addEventListener('click',()=>toggleLayer(row.dataset.layerRow)));
   updateLegend();
 }
 function updateLegend(){
@@ -65,7 +65,7 @@ function updateLegend(){
 }
 function toggleLayer(id,forced){
   const def=CONFIG.layers.find(x=>x.id===id); def.active=forced??!def.active;
-  const input=document.querySelector(`[data-layer="${id}"]`); if(input)input.checked=def.active;
+  const button=document.querySelector(`[data-layer="${id}"]`); if(button)button.setAttribute('aria-pressed',String(def.active));
   const layer=state.layers[id]; if(layer){if(def.active)layer.addTo(map);else map.removeLayer(layer)} updateLegend();
 }
 function styleFor(id,feature){
@@ -78,7 +78,7 @@ function styleFor(id,feature){
   if(id==='observations'){const n=feature.properties.nb_observations||0;return{color:'#fff',weight:1,fillColor:color,fillOpacity:Math.min(.65,.12+Math.log10(n+1)/8)}}
   return{color,weight:id.startsWith('natura')?2.5:1.5,fillColor:color,fillOpacity:id.startsWith('natura')?.24:.18};
 }
-function nameFor(id,p){return p.nom||p.nom_officiel||p.nom_du_jardin||p.sitename||p.commune||(id==='observations'?`Maille d’observations n° ${p.id_maille}`:'Objet cartographique')}
+function nameFor(id,p){return p.nom||p.nom_officiel||p.nom_du_jardin||p.sitename||p.toponyme||p.libelle||p.nom_site||p.nature||p.nature_detaillee||p.commune||(id==='observations'?`Maille d’observations n° ${p.id_maille}`:CONFIG.layers.find(x=>x.id===id)?.label||'Biodiversité')}
 function makeLayer(id,data){
   // Les éventuels débordements sont masqués par le contour départemental.
   // Éviter le recalcul géométrique de chaque objet accélère fortement l'ouverture.
@@ -115,8 +115,8 @@ function searchCommune(name){
   if(!feature){showMapMessage('Commune non trouvée','Essayez par exemple « L’Isle-Adam », « Cergy » ou « Magny-en-Vexin ».');return}
   state.selectedCommune=feature; $('territory-name').textContent=`${feature.properties.nom} · ${feature.properties.code}`;$('reset').hidden=false;$('map-intro').hidden=true;
   state.communesLayer.eachLayer(l=>l.setStyle({weight:l.feature===feature?4:1,fillOpacity:l.feature===feature?.12:0,color:l.feature===feature?'#000091':'#68707a'}));
-  const target=[...state.communesLayer.getLayers()].find(l=>l.feature===feature);state.selectedPoint=target.getBounds().getCenter();map.fitBounds(target.getBounds(),{padding:[24,24]});
-  openDrawer(feature.properties.nom,'Commune du Val-d’Oise',`<section class="result-section"><h3>Données communales</h3><dl class="data-grid">${propertyRows(feature.properties)}</dl></section>`,'https://www.geoportail.gouv.fr/');
+  const target=[...state.communesLayer.getLayers()].find(l=>l.feature===feature);state.selectedPoint=null;map.fitBounds(target.getBounds(),{padding:[24,24]});
+  $('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');
 }
 function reset(){state.selectedCommune=null;state.selectedPoint=null;$('territory-name').textContent='Val-d’Oise · 95';$('reset').hidden=false;$('search-input').value='';state.communesLayer.eachLayer(l=>l.setStyle({weight:1,fillOpacity:0,color:'#68707a'}));map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[24,24],animate:false});$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');$('map-intro').hidden=true}
 async function load(){
@@ -130,11 +130,11 @@ async function load(){
     state.department=state.data.department.features?.[0]||state.data.department;
     const holes=[];const departmentGeometry=state.department.geometry;if(departmentGeometry?.type==='Polygon')holes.push(departmentGeometry.coordinates[0]);if(departmentGeometry?.type==='MultiPolygon')departmentGeometry.coordinates.forEach(polygon=>holes.push(polygon[0]));
     L.geoJSON({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[-180,-85],[180,-85],[180,85],[-180,85],[-180,-85]],...holes]}},{pane:'departmentMask',interactive:false,style:{stroke:false,fillColor:'#f5f5fe',fillOpacity:.88,fillRule:'evenodd'}}).addTo(map);
-    state.communesLayer=L.geoJSON(state.data.communes,{style:{color:'#68707a',weight:1,fillOpacity:0},onEachFeature:(f,l)=>{l.bindTooltip(f.properties.nom,{sticky:true});l.on('click',e=>{L.DomEvent.stopPropagation(e);searchCommune(f.properties.nom)})}}).addTo(map);
+    state.communesLayer=L.geoJSON(state.data.communes,{interactive:false,style:{color:'#68707a',weight:1,fillOpacity:0}}).addTo(map);
     L.geoJSON(state.department,{interactive:false,style:{color:'#343b45',weight:2.4,opacity:.8,fillOpacity:0}}).addTo(map);
     state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[24,24],animate:false});
     const layerIds=['vegetation','jardins','pnr','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
-    for(let i=0;i<layerIds.length;i++){const id=layerIds[i];$('loader-detail').textContent=`Installation des couches · ${i+1}/${layerIds.length}`;await new Promise(resolve=>setTimeout(resolve,0));makeLayer(id,state.data[id])}state.communesLayer.bringToFront();
+    for(let i=0;i<layerIds.length;i++){const id=layerIds[i];$('loader-detail').textContent=`Installation des couches · ${i+1}/${layerIds.length}`;await new Promise(resolve=>setTimeout(resolve,0));makeLayer(id,state.data[id])}
     $('communes-list').innerHTML=state.data.communes.features.sort((a,b)=>a.properties.nom.localeCompare(b.properties.nom,'fr')).map(f=>`<option value="${escapeHtml(f.properties.nom)}"></option>`).join('');
     $('api-dot').classList.add('ok');$('api-state').textContent='Données disponibles';$('api-detail').textContent='Espaces naturels · zonages · espèces';$('map-loader').classList.add('hidden');setTimeout(()=>$('map-loader').hidden=true,250);
   }catch(error){console.error(error);$('api-state').textContent='Certaines données sont indisponibles';$('api-detail').textContent='Rechargez la page ou consultez les sources';$('loader-detail').textContent='Chargement incomplet — rechargez la page';showMapMessage('Chargement incomplet','La carte de fond reste disponible. Réessayez dans quelques instants.')}
