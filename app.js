@@ -10,6 +10,7 @@ const DATA = {
   communes:'data/communes_95.geojson', department:'data/val-doise.geojson', znieff1:'data/znieff1.json', znieff2:'data/znieff2.json',
   naturaHabitat:'data/natura-habitat.json', naturaOiseaux:'data/natura-oiseaux.json',
   pnr:'data/parcs-naturels-regionaux.json', reserves:'data/reserves-naturelles.json',
+  foretsProtection:'data/forets-protection.geojson',
   protections:'data/espaces-naturels-proteges.json', vegetation:'data/zones-vegetation.geojson',
   jardins:'data/jardins-remarquables.json', connexions:'data/connexions-ecologiques.json',
   observations:'data/observations-mailles.json'
@@ -20,6 +21,7 @@ const CONFIG = {
     {id:'vegetation',group:'Espaces de nature',label:'Boisements et végétation',description:'Bois, forêts, bosquets, landes, peupleraies et vergers.',color:'#5b8c3a',source:'IGN · BD TOPO',active:true},
     {id:'jardins',group:'Espaces de nature',label:'Jardins remarquables',description:'Jardins labellisés par le ministère de la Culture.',color:'#95c11f',source:'DRAC · Région Île-de-France',active:false},
     {id:'pnr',group:'Espaces protégés',label:'Parcs naturels régionaux',description:'Vexin français et Oise–Pays de France.',color:'#2f6f3e',source:'INPN · API Carto IGN',active:true},
+    {id:'foretsProtection',group:'Espaces protégés',label:'Forêts de protection',description:'Forêt de Montmorency — servitude d’utilité publique A7.',color:'#004d2c',source:'Géoportail de l’urbanisme · SUP A7',active:true},
     {id:'reserves',group:'Espaces protégés',label:'Réserves naturelles',description:'Réserves naturelles nationales.',color:'#006a6f',source:'INPN · API Carto IGN',active:true},
     {id:'protections',group:'Espaces protégés',label:'Autres espaces protégés',description:'Arrêtés de protection, réserves biologiques et sites conservatoires.',color:'#008941',source:'IGN · BD TOPO',active:false},
     {id:'znieff1',group:'Espaces remarquables',label:'ZNIEFF de type I',description:'Secteurs de grand intérêt biologique ou écologique.',color:'#e4792f',source:'INPN · API Carto IGN',active:true},
@@ -70,8 +72,9 @@ function toggleLayer(id,forced){
 }
 function styleFor(id,feature){
   const color=CONFIG.layers.find(x=>x.id===id).color;
-  if(id==='vegetation')return{color,weight:.5,opacity:.65,fillColor:color,fillOpacity:.28};
+  if(id==='vegetation')return{color,weight:1.1,opacity:.95,fillColor:color,fillOpacity:.48};
   if(id==='pnr')return{color,weight:2.2,dashArray:'8 5',opacity:.9,fillColor:color,fillOpacity:.08};
+  if(id==='foretsProtection')return{color,weight:3,opacity:1,fillColor:color,fillOpacity:.32};
   if(id==='protections'||id==='reserves')return{color,weight:2,opacity:.95,fillColor:color,fillOpacity:.2};
   if(id==='jardins')return{color:'#ffffff',weight:1.5,fillColor:color,fillOpacity:.9};
   if(id==='connexions')return{color,weight:5,opacity:.75,fillColor:color,fillOpacity:.2};
@@ -90,7 +93,7 @@ function makeLayer(id,data){
 function selectFeature(id,feature,layer,latlng){
   if(!insideDepartment(latlng))return;
   state.selectedPoint=latlng; const p=feature.properties||{}; const def=CONFIG.layers.find(x=>x.id===id);
-  const sourceUrl=p.url||(id==='connexions'?'https://data.iledefrance.fr/explore/dataset/connexion-ecologique-sdrif-e/':id==='observations'?'https://geonature.arb-idf.fr/atlas/':id==='vegetation'||id==='protections'?'https://geoservices.ign.fr/bdtopo':id==='jardins'?'https://data.iledefrance.fr/explore/dataset/liste-des-jardins-remarquables/':'https://inpn.mnhn.fr/');
+  const sourceUrl=p.url||(id==='connexions'?'https://data.iledefrance.fr/explore/dataset/connexion-ecologique-sdrif-e/':id==='observations'?'https://geonature.arb-idf.fr/atlas/':id==='foretsProtection'?'https://www.geoportail-urbanisme.gouv.fr/':id==='vegetation'||id==='protections'?'https://geoservices.ign.fr/bdtopo':id==='jardins'?'https://data.iledefrance.fr/explore/dataset/liste-des-jardins-remarquables/':'https://inpn.mnhn.fr/');
   const body=`<section class="result-section"><h3>Informations disponibles</h3><dl class="data-grid">${propertyRows(p)}</dl></section><section class="result-section"><h3>Référentiel</h3><dl class="data-grid"><div><dt>Couche</dt><dd>${escapeHtml(def.label)}</dd></div><div><dt>Producteur</dt><dd>${escapeHtml(def.source)}</dd></div><div><dt>Synchronisation</dt><dd>30 juillet 2026</dd></div></dl></section>`;
   openDrawer(nameFor(id,p),def.label,body,sourceUrl);
   layer.setStyle({...styleFor(id,feature),weight:4});
@@ -123,7 +126,7 @@ async function load(){
   renderControls();
   try{
     const keys=Object.keys(DATA);
-    $('loader-detail').textContent='Téléchargement des 12 référentiels…';
+    $('loader-detail').textContent=`Téléchargement des ${keys.length} référentiels…`;
     const results=await Promise.all(keys.map(k=>fetch(DATA[k],{signal:AbortSignal.timeout(30000)}).then(r=>{if(!r.ok)throw Error(k);return r.json()})));keys.forEach((k,i)=>state.data[k]=results[i]);
     $('loader-detail').textContent='Préparation du masque du Val-d’Oise…';
     await new Promise(requestAnimationFrame);
@@ -133,7 +136,7 @@ async function load(){
     state.communesLayer=L.geoJSON(state.data.communes,{interactive:false,style:{color:'#68707a',weight:1,fillOpacity:0}}).addTo(map);
     L.geoJSON(state.department,{interactive:false,style:{color:'#343b45',weight:2.4,opacity:.8,fillOpacity:0}}).addTo(map);
     state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[24,24],animate:false});
-    const layerIds=['vegetation','jardins','pnr','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
+    const layerIds=['vegetation','jardins','pnr','foretsProtection','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
     for(let i=0;i<layerIds.length;i++){const id=layerIds[i];$('loader-detail').textContent=`Installation des couches · ${i+1}/${layerIds.length}`;await new Promise(resolve=>setTimeout(resolve,0));makeLayer(id,state.data[id])}
     $('communes-list').innerHTML=state.data.communes.features.sort((a,b)=>a.properties.nom.localeCompare(b.properties.nom,'fr')).map(f=>`<option value="${escapeHtml(f.properties.nom)}"></option>`).join('');
     $('api-dot').classList.add('ok');$('api-state').textContent='Données disponibles';$('api-detail').textContent='Espaces naturels · zonages · espèces';$('map-loader').classList.add('hidden');setTimeout(()=>$('map-loader').hidden=true,250);
