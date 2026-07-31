@@ -9,9 +9,10 @@ Validation : **31 juillet 2026**.
 - [x] Masque extérieur et contour du Val-d’Oise.
 - [x] Cadrage départemental avec le même `fitBounds` et padding de 24 px que la page Agriculture.
 - [x] Le menu des couches possède son propre ascenseur ; l’en-tête et « Tout masquer » restent fixes.
-- [x] Chaque ligne de couche est cliquable et pilote une case de 20 × 20 px.
-- [x] Recherche Cergy : sélection, zoom et fiche communale.
-- [x] Fiches métier : tous les attributs scalaires non vides de la source sont publiés.
+- [x] Chaque ligne de couche est cliquable et pilote un sélecteur à glissière.
+- [x] Recherche communale : sélection et zoom, sans ouverture ni persistance d’une fiche communale.
+- [x] Les contours communaux sont non interactifs et n’interceptent plus les clics thématiques.
+- [x] Fiches métier : tous les attributs scalaires non vides de la source sont publiés ; le titre reprend le nom, le toponyme ou la nature de l’objet.
 - [x] Recentrage sur l’objet sélectionné et accès à la source.
 - [x] Absence des actions copie et impression.
 

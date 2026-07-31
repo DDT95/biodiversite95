@@ -16,9 +16,11 @@
 .layers{display:flex;flex:1;min-height:0;flex-direction:column}
 .section-title{margin-top:4px;padding:13px 8px;border-bottom:1px solid #e4e4eb}
 #layer-list{flex:1;min-height:0;overflow-y:auto;padding:8px 4px 18px;scrollbar-gutter:stable}
-.layer-row{grid-template-columns:22px 1fr 15px;min-height:58px;cursor:pointer}
+.layer-row{grid-template-columns:34px 1fr 15px;min-height:58px;cursor:pointer}
 .layer-row:hover{background:var(--soft);border-color:#c9c9e8}
-.layer-row input{width:20px;height:20px;margin:0;accent-color:var(--blue);cursor:pointer}
+.layer-row .switch{width:34px;height:20px;padding:2px;align-self:center}
+.layer-row .switch:after{width:16px;height:16px}
+.layer-row .switch[aria-pressed=true]:after{transform:translateX(14px)}
 .panel-links{padding-top:10px;background:#fff}
 .map-loader{position:absolute;z-index:1000;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(245,245,254,.88);color:#0d0d45;transition:opacity .2s}
 .map-loader.hidden{opacity:0;pointer-events:none}

@@ -29,8 +29,9 @@ The combined 1× capture keeps the header, search, primary action, layer heading
 - 11 layer rows render before data installation completes.
 - Central loader displays installation progress and disappears after completion.
 - The layer menu has its own vertical overflow (`scrollHeight > clientHeight`); “Tout masquer” remains fixed.
-- Clicking the full “Jardins remarquables” row checked its 20 × 20 px checkbox and activated the layer.
-- Search for Cergy opened the fiche with four available commune attributes.
+- Clicking a full layer row operates its pill selector and activates or hides the layer.
+- Commune search zooms and highlights without opening a persistent commune fiche.
+- Commune polygons are non-interactive, leaving clicks to biodiversity objects.
 - Feature fiches render every non-empty scalar source property (6 to 33 properties depending on the layer), plus producer and synchronization.
 - No Atlas return, copy-link or print action remains.
 - Browser console errors checked: none.
@@ -38,7 +39,7 @@ The combined 1× capture keeps the header, search, primary action, layer heading
 ## Comparison history
 
 - Pass 1 findings: return-to-Atlas control not in the specification; editorial cards; full-panel scrolling; small switch controls; no central loader; explanatory rather than data-rich fiche actions.
-- Fixes: removed non-spec controls and copy, isolated layer scrolling, replaced switches with full-row checkbox labels, added the central progress loader, precomputed the department mask, aligned `fitBounds` to 24 px, and generated fiches from all published properties.
+- Fixes: removed non-spec controls and copy, isolated layer scrolling, restored pill selectors with full-row activation, added the central progress loader, precomputed the department mask, aligned `fitBounds` to 24 px, prevented commune click interception, and generated thematic fiches from all published properties.
 - Pass 2 evidence: combined comparison and browser interaction tests show no remaining actionable P0/P1/P2 issue.
 
 ## Findings
