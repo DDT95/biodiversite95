@@ -11,7 +11,7 @@ const DATA = {
   naturaHabitat:'data/natura-habitat.json', naturaOiseaux:'data/natura-oiseaux.json',
   pnr:'data/parcs-naturels-regionaux.json', reserves:'data/reserves-naturelles.json',
   foretsProtection:'data/forets-protection.geojson',
-  protections:'data/espaces-naturels-proteges.json', vegetation:'data/zones-vegetation.geojson',
+  protections:'data/espaces-naturels-proteges.json', vegetation:'data/zones-vegetation.geojson?v=20260731-2',
   jardins:'data/jardins-remarquables.json', connexions:'data/connexions-ecologiques.json',
   observations:'data/observations-mailles.json'
 };
