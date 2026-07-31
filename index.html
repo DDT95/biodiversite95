@@ -23,10 +23,7 @@
         <small>Val-d’Oise · espaces naturels · parcs et jardins · continuités · espèces</small>
       </div>
     </div>
-    <div class="header-actions">
-      <div class="header-status" aria-live="polite"><i id="api-dot"></i><p><strong id="api-state">Chargement des données</strong><small id="api-detail">Référentiels territoriaux</small></p></div>
-      <a class="atlas-return" href="https://ddt95.github.io/atlas-territorial-95/">← Retour à l’Atlas</a>
-    </div>
+    <div class="header-status" aria-live="polite"><i id="api-dot"></i><p><strong id="api-state">Chargement des données</strong><small id="api-detail">Référentiels territoriaux</small></p></div>
   </header>
 
   <main class="workspace">
@@ -40,25 +37,20 @@
           <datalist id="communes-list"></datalist>
         </form>
 
-        <div class="reading"><b>Lecture de la carte</b><p>Activez les informations utiles, puis cliquez sur un espace naturel, un zonage ou une maille pour ouvrir sa fiche.</p></div>
-
         <div class="main-actions"><button id="reset" type="button">Recentrer le Val-d’Oise</button><button id="mobile-panel" type="button" aria-expanded="false">Afficher les couches</button></div>
-
-        <div class="territory"><span>Territoire affiché</span><strong id="territory-name">Val-d’Oise · 95</strong></div>
-
-        <section class="purpose"><h2>À quoi sert cet outil ?</h2><p>Localiser les espaces naturels, parcs et jardins, ZNIEFF, sites Natura 2000, continuités écologiques et observations d’espèces disponibles.</p></section>
+        <span class="sr-only" id="territory-name">Val-d’Oise · 95</span>
 
         <section class="layers" aria-labelledby="layers-title">
           <div class="section-title"><h2 id="layers-title">Couches de la carte</h2><button id="hide-all" type="button">Tout masquer</button></div>
           <div id="layer-list"></div>
         </section>
 
-        <div class="panel-links"><button id="sources-open" type="button">Sources et millésimes</button><button id="about-open" type="button">À propos</button></div>
       </div>
     </aside>
 
     <section class="map-zone" aria-label="Carte interactive de la biodiversité">
       <div id="map" tabindex="0" aria-label="Carte interactive du Val-d’Oise. Utilisez les boutons de zoom ou recherchez une commune."></div>
+      <div class="map-loader" id="map-loader" role="status" aria-live="polite"><i aria-hidden="true"></i><strong>Chargement des données</strong><span id="loader-detail">Préparation des référentiels…</span></div>
       <div class="map-intro" id="map-intro" hidden><strong>Information</strong><span></span></div>
       <div class="legend" id="legend" aria-label="Légende de la carte"><strong>Légende</strong><div id="legend-items"></div></div>
       <div class="map-note">Masque du Val-d’Oise · fond OpenStreetMap</div>
@@ -71,17 +63,14 @@
 <aside class="drawer" id="drawer" aria-labelledby="drawer-title" aria-hidden="true">
   <button class="drawer-close" id="drawer-close" type="button" aria-label="Fermer la fiche">×</button>
   <div class="drawer-head"><p>FICHE TERRITORIALE</p><h2 id="drawer-title">Aucune sélection</h2><span id="drawer-sub">Cliquez dans le Val-d’Oise</span></div>
-  <div class="drawer-summary" id="drawer-summary"><strong>À retenir</strong><p>Les informations essentielles apparaîtront ici.</p></div>
   <div class="drawer-body" id="drawer-body"></div>
-  <div class="drawer-actions"><button id="drawer-center" type="button">Recentrer</button><button id="drawer-copy" type="button">Copier le lien</button><button id="drawer-print" type="button">Imprimer</button><a id="drawer-source" href="https://inpn.mnhn.fr/" target="_blank" rel="noopener">Source officielle ↗</a></div>
+  <div class="drawer-actions"><button id="drawer-center" type="button">Recentrer sur l’objet</button><a id="drawer-source" href="https://inpn.mnhn.fr/" target="_blank" rel="noopener">Consulter la source ↗</a></div>
 </aside>
 
-<div class="modal" id="info-modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button id="modal-close" type="button" aria-label="Fermer">×</button><p class="modal-kicker">BIODIVERSITÉ · DDT 95</p><h2 id="modal-title">À propos</h2><div id="modal-content"></div></div></div>
 <div class="sr-only" id="text-alternative" aria-live="polite">Aucune zone sélectionnée.</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7.2.0/turf.min.js"></script>
-<script src="data/biodiversite-data.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
