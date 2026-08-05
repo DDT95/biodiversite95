@@ -149,7 +149,7 @@ function searchCommune(name){
   const target=[...state.communesLayer.getLayers()].find(l=>l.feature===feature);state.selectedPoint=null;map.invalidateSize();map.fitBounds(target.getBounds(),{padding:[24,24]});
   $('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');
 }
-function reset(){state.selectedCommune=null;state.selectedPoint=null;$('territory-name').textContent='Val-d’Oise · 95';$('reset').hidden=false;$('search-input').value='';state.communesLayer.eachLayer(l=>l.setStyle({weight:1,fillOpacity:0,color:'#68707a'}));map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[4,4],animate:false});map.zoomIn(0.25,{animate:false});$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');$('map-intro').hidden=true}
+function reset(){state.selectedCommune=null;state.selectedPoint=null;$('territory-name').textContent='Val-d’Oise · 95';$('reset').hidden=false;$('search-input').value='';state.communesLayer.eachLayer(l=>l.setStyle({weight:1,fillOpacity:0,color:'#68707a'}));map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[4,4],animate:false});map.zoomIn(0.4,{animate:false});$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');$('map-intro').hidden=true}
 async function load(){
   renderControls();
   try{
@@ -163,7 +163,7 @@ async function load(){
     L.geoJSON({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[-180,-85],[180,-85],[180,85],[-180,85],[-180,-85]],...holes]}},{pane:'departmentMask',interactive:false,style:{stroke:false,fillColor:'#f5f5fe',fillOpacity:.88,fillRule:'evenodd'}}).addTo(map);
     state.communesLayer=L.geoJSON(state.data.communes,{interactive:false,style:{color:'#68707a',weight:1,fillOpacity:0}}).addTo(map);
     L.geoJSON(state.department,{interactive:false,style:{color:'#343b45',weight:2.4,opacity:.8,fillOpacity:0}}).addTo(map);
-    state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[4,4],animate:false});map.zoomIn(0.25,{animate:false});
+    state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[4,4],animate:false});map.zoomIn(0.4,{animate:false});
     const layerIds=['vegetation','foretsPubliques','jardins','pnr','foretsProtection','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
     for(let i=0;i<layerIds.length;i++){const id=layerIds[i];$('loader-detail').textContent=`Installation des couches · ${i+1}/${layerIds.length}`;await new Promise(resolve=>setTimeout(resolve,0));makeLayer(id,state.data[id])}
     $('communes-list').innerHTML=state.data.communes.features.sort((a,b)=>a.properties.nom.localeCompare(b.properties.nom,'fr')).map(f=>`<option value="${escapeHtml(f.properties.nom)}"></option>`).join('');
