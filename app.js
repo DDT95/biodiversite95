@@ -35,7 +35,9 @@ const CONFIG = {
   ]
 };
 const state={data:{},layers:{},communesLayer:null,department:null,selectedCommune:null,selectedPoint:null};
-const map=L.map('map',{zoomControl:true,preferCanvas:true,minZoom:8,maxZoom:19,maxBounds:[[48.63,.7],[49.37,3.35]]}).fitBounds(CONFIG.bounds,{padding:[24,24]});
+const map=L.map('map',{zoomControl:true,preferCanvas:true,zoomSnap:0.25,zoomDelta:1,minZoom:8,maxZoom:19,maxBounds:[[48.63,.7],[49.37,3.35]]});
+map.invalidateSize();
+map.fitBounds(CONFIG.bounds,{padding:[24,24]});
 map.createPane('departmentMask');map.getPane('departmentMask').style.zIndex='460';map.getPane('departmentMask').style.pointerEvents='none';
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
 map.attributionControl.setPrefix('Leaflet');
@@ -144,10 +146,10 @@ function searchCommune(name){
   if(!feature){showMapMessage('Commune non trouvée','Essayez par exemple « L’Isle-Adam », « Cergy » ou « Magny-en-Vexin ».');return}
   state.selectedCommune=feature; $('territory-name').textContent=`${feature.properties.nom} · ${feature.properties.code}`;$('reset').hidden=false;$('map-intro').hidden=true;
   state.communesLayer.eachLayer(l=>l.setStyle({weight:l.feature===feature?4:1,fillOpacity:l.feature===feature?.12:0,color:l.feature===feature?'#000091':'#68707a'}));
-  const target=[...state.communesLayer.getLayers()].find(l=>l.feature===feature);state.selectedPoint=null;map.fitBounds(target.getBounds(),{padding:[24,24]});
+  const target=[...state.communesLayer.getLayers()].find(l=>l.feature===feature);state.selectedPoint=null;map.invalidateSize();map.fitBounds(target.getBounds(),{padding:[24,24]});
   $('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');
 }
-function reset(){state.selectedCommune=null;state.selectedPoint=null;$('territory-name').textContent='Val-d’Oise · 95';$('reset').hidden=false;$('search-input').value='';state.communesLayer.eachLayer(l=>l.setStyle({weight:1,fillOpacity:0,color:'#68707a'}));map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[24,24],animate:false});$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');$('map-intro').hidden=true}
+function reset(){state.selectedCommune=null;state.selectedPoint=null;$('territory-name').textContent='Val-d’Oise · 95';$('reset').hidden=false;$('search-input').value='';state.communesLayer.eachLayer(l=>l.setStyle({weight:1,fillOpacity:0,color:'#68707a'}));map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[4,4],animate:false});$('drawer').classList.remove('open');$('drawer').setAttribute('aria-hidden','true');$('map-intro').hidden=true}
 async function load(){
   renderControls();
   try{
@@ -161,7 +163,7 @@ async function load(){
     L.geoJSON({type:'Feature',properties:{},geometry:{type:'Polygon',coordinates:[[[-180,-85],[180,-85],[180,85],[-180,85],[-180,-85]],...holes]}},{pane:'departmentMask',interactive:false,style:{stroke:false,fillColor:'#f5f5fe',fillOpacity:.88,fillRule:'evenodd'}}).addTo(map);
     state.communesLayer=L.geoJSON(state.data.communes,{interactive:false,style:{color:'#68707a',weight:1,fillOpacity:0}}).addTo(map);
     L.geoJSON(state.department,{interactive:false,style:{color:'#343b45',weight:2.4,opacity:.8,fillOpacity:0}}).addTo(map);
-    state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[24,24],animate:false});
+    state.communesLayer.bringToFront();map.invalidateSize();map.fitBounds(state.communesLayer.getBounds(),{padding:[4,4],animate:false});
     const layerIds=['vegetation','foretsPubliques','jardins','pnr','foretsProtection','reserves','protections','znieff1','znieff2','naturaHabitat','naturaOiseaux','connexions','observations'];
     for(let i=0;i<layerIds.length;i++){const id=layerIds[i];$('loader-detail').textContent=`Installation des couches · ${i+1}/${layerIds.length}`;await new Promise(resolve=>setTimeout(resolve,0));makeLayer(id,state.data[id])}
     $('communes-list').innerHTML=state.data.communes.features.sort((a,b)=>a.properties.nom.localeCompare(b.properties.nom,'fr')).map(f=>`<option value="${escapeHtml(f.properties.nom)}"></option>`).join('');
