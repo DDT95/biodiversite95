@@ -31,3 +31,5 @@
 .drawer-body{padding-top:8px}
 .data-grid{margin:0}.data-grid>div{display:flex;justify-content:space-between;gap:18px;padding:9px 0;border-top:1px solid #eee;font-size:11px}.data-grid dt{color:#777}.data-grid dd{margin:0;font-weight:700;text-align:right;overflow-wrap:anywhere}.drawer-actions>*{flex:1;text-align:center}
 @media(max-width:900px){.header-status{display:none}.panel-scroll{overflow:auto}.layers{display:none}.left-panel.open .layers{display:flex;min-height:260px}#mobile-panel{display:block}.main-actions{grid-template-columns:1.3fr 1fr}#layer-list{max-height:300px}.map-loader{border-radius:25px}}
+/* Keep the map's percentage height resolvable when the mobile shell switches to auto height. */
+@media(max-width:900px){.workspace,.map-zone{min-height:calc(100vh - 110px)}.map-zone{height:calc(100vh - 110px)}}
